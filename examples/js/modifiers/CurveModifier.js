@@ -198,8 +198,31 @@ vec3 transformedNormal = normalMatrix * (basis * objectNormal);
 
 				if ( child instanceof THREE.Mesh || child instanceof THREE.InstancedMesh ) {
 
-					child.material = child.material.clone();
-					modifyShader( child.material, uniforms, numberOfCurves );
+					if ( child.material instanceof THREE.Material ) {
+
+            child.material = child.material.clone();
+            modifyShader( child.material, uniforms, numberOfCurves );
+
+          } else if ( child.material instanceof Array ) {
+
+						// This is for meshes with more than one material, i.e. an array of matherials
+						// like a text with two different materials
+
+            const childMaterials = [];
+            child.material.forEach(( childMaterial, index ) => {
+              const childMaterialClone = childMaterial.clone();
+              childMaterials.push( childMaterialClone );
+              modifyShader( childMaterialClone, uniforms, numberOfCurves );
+
+            } );
+
+            child.material = childMaterials;
+
+          } else {
+
+						throw new Error( `Material of the mesh ${child?.name} is not an instance of
+							THREE.Material or an Array of THREE.Material instances` );
+					}
 
 				}
 
